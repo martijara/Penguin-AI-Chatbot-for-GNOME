@@ -1,0 +1,9 @@
+{
+    "name" : "Llama Pilot",
+    "description" : "A GNOME Shell extension that allows you to talk with Llama 3.1.",
+    "shell-version" : [
+        "46"
+    ],
+    "url" : "",
+    "uuid" : "llama-pilot@codeberg.org"
+}

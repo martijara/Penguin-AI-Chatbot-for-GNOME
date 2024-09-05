@@ -1,0 +1,17 @@
+.llama-icon {
+    background-image: url("assets/llama.png"); /* UI icons by Flaticon: https://www.flaticon.com/uicons */
+    background-size: 16px;
+    width: 16px;
+    height: 16px;
+    padding: 17px;
+}
+
+.chat-scrolling {
+    max-height: 1000px
+}
+
+.messageInput {
+    width: 250px;
+    height: 20px !important;
+    border-radius: 100px;
+}
