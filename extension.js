@@ -103,13 +103,15 @@ class Indicator extends PanelMenu.Button {
             console.log(input);
 
             this.messageDebug = new St.Label({
-                text: input,
                 style_class: 'humanMessage',
-                y_expand: true
+                x_expand: true,
+                reactive: true
             });
 
+
+            this.messageDebug.clutter_text.set_text(input);
             this.messageDebug.clutter_text.single_line_mode = false;
-            this.messageDebug.clutter_text.line_wrap_mode = Pango.WrapMode.WORD;
+            this.messageDebug.clutter_text.line_wrap        = true;
     
             chatBox.add_child(this.messageDebug);
             this.chatView.set_child(chatBox);
