@@ -28,6 +28,7 @@ import System from 'system';
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import Pango from 'gi://Pango';
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -53,7 +54,7 @@ class Indicator extends PanelMenu.Button {
 
         this.header = new St.Label({
             text: "Llama Copilot",
-            style: 'text-align: center'
+            style: 'text-align: center',
         });
 
         descriptiveBox.add_child(this.header);
@@ -65,8 +66,10 @@ class Indicator extends PanelMenu.Button {
             can_focus: true,
             track_hover: true,
             style_class: 'messageInput',
-            style: 'margin-left: 8px; margin-right: 8px; margin-top: 8px;'
+            style: 'margin-left: 8px; margin-right: 8px; margin-top: 8px;',
+            y_expand: true
         });
+
 
         this.submitInput = new St.Button({
             label: "Send",
@@ -82,6 +85,7 @@ class Indicator extends PanelMenu.Button {
         let chatBox = new St.BoxLayout({
             vertical: true,
             style_class: 'popup-menu-box',
+            style: 'text-wrap: wrap'
         });
 
         this.chatView = new St.ScrollView({
@@ -100,8 +104,12 @@ class Indicator extends PanelMenu.Button {
 
             this.messageDebug = new St.Label({
                 text: input,
-                style: 'text-align: right; margin-left: 25px'
+                style_class: 'humanMessage',
+                y_expand: true
             });
+
+            this.messageDebug.clutter_text.single_line_mode = false;
+            this.messageDebug.clutter_text.line_wrap_mode = Pango.WrapMode.WORD;
     
             chatBox.add_child(this.messageDebug);
             this.chatView.set_child(chatBox);

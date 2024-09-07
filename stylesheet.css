@@ -13,11 +13,34 @@
     margin-right: 15px;
     margin-top: 15px;
     margin-bottom: 15px;
+    overflow: hidden;
+    resize: vertical;
+    resize: horizontal;
 }
 
 .messageInput {
     width: 250px;
     height: 20px !important;
     border-radius: 100px;
-    max-width: 400px
+    max-width: 400px;
+    max-height:400px;
+    overflow: hidden;
+    resize: vertical;
+    resize: horizontal;
+}
+
+.humanMessage {
+    text-wrap:wrap;
+    background-color:brown;
+    text-align: left;
+    margin-left: 40px;
+    text-size-adjust: 10;
+    margin-top: 10px;
+    text-emphasis-color: black;
+    overflow: hidden;
+    font-size: medium;
+    border: 10px;
+    border-radius: 30px;    
+    word-break: break-all;
+    word-wrap: break-word;
 }
