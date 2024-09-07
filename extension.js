@@ -64,6 +64,7 @@ class Indicator extends PanelMenu.Button {
             hint_text: "Chat with Llama",
             can_focus: true,
             track_hover: true,
+            style_class: 'messageInput',
             style: 'margin-left: 8px; margin-right: 8px; margin-top: 8px;'
         });
 
@@ -80,11 +81,12 @@ class Indicator extends PanelMenu.Button {
         // --- EXTENSION BODY
         let chatBox = new St.BoxLayout({
             vertical: true,
-            style_class: 'popup-menu-box'
+            style_class: 'popup-menu-box',
         });
 
         this.chatView = new St.ScrollView({
             enable_mouse_scrolling: true,
+            style_class: 'chat-scrolling'
         });
 
         this.chatView.set_child(chatBox);
@@ -98,7 +100,7 @@ class Indicator extends PanelMenu.Button {
 
             this.messageDebug = new St.Label({
                 text: input,
-                style: 'text-align: center'
+                style: 'text-align: right; margin-left: 25px'
             });
     
             chatBox.add_child(this.messageDebug);
