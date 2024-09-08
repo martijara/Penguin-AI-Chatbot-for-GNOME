@@ -90,7 +90,8 @@ class Indicator extends PanelMenu.Button {
 
         this.chatView = new St.ScrollView({
             enable_mouse_scrolling: true,
-            style_class: 'chat-scrolling'
+            style_class: 'chat-scrolling',
+            reactive: true
         });
 
         this.chatView.set_child(chatBox);
@@ -105,13 +106,16 @@ class Indicator extends PanelMenu.Button {
             this.messageDebug = new St.Label({
                 style_class: 'humanMessage',
                 x_expand: true,
+                y_expand: true,
                 reactive: true
             });
 
 
-            this.messageDebug.clutter_text.set_text(input);
+            this.messageDebug.clutter_text.set_markup(`${input}`);
             this.messageDebug.clutter_text.single_line_mode = false;
             this.messageDebug.clutter_text.line_wrap        = true;
+            this.messageDebug.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
+            this.messageDebug.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
     
             chatBox.add_child(this.messageDebug);
             this.chatView.set_child(chatBox);
