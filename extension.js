@@ -32,9 +32,14 @@ import Pango from 'gi://Pango';
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import Groq from "./node_modules/groq-sdk/index.mjs";
+
+
+const groq = new Groq({ apiKey: "" });
 
 const Indicator = GObject.registerClass(
-class Indicator extends PanelMenu.Button {
+class Indicator extends PanelMenu.Button 
+{
     _init() {
         // --- INITIALIZATION AND ICON IN TOPBAR
         super._init(0.0, _('Llama Copilot'));
@@ -101,7 +106,6 @@ class Indicator extends PanelMenu.Button {
         // Button action script
         this.submitInput.connect('clicked', () => {
             let input = this.chatInput.get_text();
-            console.log(input);
 
             this.messageDebug = new St.Label({
                 style_class: 'humanMessage',
@@ -119,6 +123,7 @@ class Indicator extends PanelMenu.Button {
     
             chatBox.add_child(this.messageDebug);
             this.chatView.set_child(chatBox);
+            console.debug(this.groqChat());
         });
 
         let entryBox = new St.BoxLayout({
@@ -137,18 +142,34 @@ class Indicator extends PanelMenu.Button {
             style_class: 'popup-menu-box'
         });
 
-        layout.add_child(descriptiveBox)
-        layout.add_child(this.chatView)
+        layout.add_child(descriptiveBox);
+        layout.add_child(this.chatView);
         layout.add_child(entryBox);
 
         
         // --- ADDING EVERYTHING TOGETHER TO APPEAR AS A POP UP MENU
         let popUp = new PopupMenu.PopupMenuSection();
         popUp.actor.add_child(layout);
-        this.menu.actor.add_style_class_name('note-entry')
+        this.menu.actor.add_style_class_name('note-entry');
 
-        this.menu.addMenuItem(popUp)
-    }
+        this.menu.addMenuItem(popUp);
+    };
+    
+    async groqChat() {
+        const completion = await groq.chat.completions
+          .create({
+            messages: [
+              {
+                role: "user",
+                content: "Explain the importance of fast language models",
+              },
+            ],
+            model: "mixtral-8x7b-32768", 
+          })
+          .then((chatCompletion) => {
+            console.log(chatCompletion.choices[0]?.message?.content || "");
+          });
+      };
 }
 );
 
