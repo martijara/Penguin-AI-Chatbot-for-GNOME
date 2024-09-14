@@ -1,25 +1,13 @@
-/* extension.js
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
+// extension.js - Controls GNOME Extensions behavior
 
+
+// Importing necessary libraries
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
+import Soup from 'gi://Soup';
 import GLib from 'gi://GLib';
+
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk?version=4.0';
 import Shell from 'gi://Shell';
@@ -32,26 +20,32 @@ import Pango from 'gi://Pango';
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import Groq from "./node_modules/groq-sdk/index.mjs";
 
 
-const groq = new Groq({ apiKey: "" });
+// Defining necessary variables (OpenRouter API)
+let OPENROUTER_API_KEY = ""
+let OPENROUTER_CHABOT_MODEL = "mattshumer/reflection-70b:free"
 
+
+// Class that activates the extension
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button 
 {
     _init() {
         // --- INITIALIZATION AND ICON IN TOPBAR
         super._init(0.0, _('Llama Copilot'));
-        
+
         this.add_child(new St.Icon({
             icon_name: 'Llama',
             style_class: 'llama-icon',
         }));
-    
+
+
+        // ... INITIALIZATION OF SESSION VARIABLES
+        this.history = []
+
         
         // --- EXTENSION HEADER
-
         let descriptiveBox = new St.BoxLayout({
             vertical: true,
             style_class: 'popup-menu-box'
@@ -64,8 +58,8 @@ class Indicator extends PanelMenu.Button
 
         descriptiveBox.add_child(this.header);
 
-        // --- EXTENSION FOOTER
 
+        // --- EXTENSION FOOTER
         this.chatInput = new St.Entry({
             hint_text: "Chat with Llama",
             can_focus: true,
@@ -74,7 +68,6 @@ class Indicator extends PanelMenu.Button
             style: 'margin-left: 8px; margin-right: 8px; margin-top: 8px;',
             y_expand: true
         });
-
 
         this.submitInput = new St.Button({
             label: "Send",
@@ -102,7 +95,6 @@ class Indicator extends PanelMenu.Button
         this.chatView.set_child(chatBox);
 
 
-
         // Button action script
         this.submitInput.connect('clicked', () => {
             let input = this.chatInput.get_text();
@@ -115,6 +107,7 @@ class Indicator extends PanelMenu.Button
             });
 
 
+            // Add a message to the body chat
             this.messageDebug.clutter_text.set_markup(`${input}`);
             this.messageDebug.clutter_text.single_line_mode = false;
             this.messageDebug.clutter_text.line_wrap        = true;
@@ -123,7 +116,14 @@ class Indicator extends PanelMenu.Button
     
             chatBox.add_child(this.messageDebug);
             this.chatView.set_child(chatBox);
-            console.debug(this.groqChat());
+
+            // Add input to chat history
+            this.history.push({
+                "role": "user",
+                "content": input
+            });
+
+            console.debug(this.openRouterChat());
         });
 
         let entryBox = new St.BoxLayout({
@@ -150,28 +150,66 @@ class Indicator extends PanelMenu.Button
         // --- ADDING EVERYTHING TOGETHER TO APPEAR AS A POP UP MENU
         let popUp = new PopupMenu.PopupMenuSection();
         popUp.actor.add_child(layout);
-        this.menu.actor.add_style_class_name('note-entry');
 
         this.menu.addMenuItem(popUp);
     };
+
+    openRouterChat() {
+        let _httpSession = new Soup.Session();
+        let url = `https://openrouter.ai/api/v1/chat/completions`;
+
+        let response = 'Hi, Human'
+
+        //if(newKey != undefined){
+        //    this._settings.set_string("gemini-api-key", newKey);
+        //    GEMINIAPIKEY = newKey;
+        //}
+
+        let message = Soup.Message.new('POST', url);
+        
+        message.request_headers.append(
+                'Authorization',
+                `Bearer ${OPENROUTER_API_KEY}`
+        )
+
+
+        let body = JSON.stringify({"model": OPENROUTER_CHABOT_MODEL, "messages": this.history});
+        let bytes  = GLib.Bytes.new(body);
+        //message.set_request_body_from_bytes('application/json', 2, body);
+        //_httpSession.queue_message(message, async (_httpSession, message) =>  {
+        //    response = JSON.stringify(JSON.parse(message.response_body.data));
+            
+            // let aiResponse = res.candidates[0]?.content?.parts[0]?.text;
+        //    this.history.push({
+        //        "role": "assistant",
+        //        "content": "Hi"
+        //    });
+        //});
+
+        message.set_request_body_from_bytes('application/json', bytes);
+        _httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (_httpSession, result) => {
+            let bytes = _httpSession.send_and_read_finish(result);
+            let decoder = new TextDecoder('utf-8');
+            let response = decoder.decode(bytes.get_data());
+            let res = JSON.parse(response);
+            // Inspecting the response for dev purpose
+            log(url)
+            if(res.error?.code != 401 && res.error !== undefined){
+                response = "Error, try another model or check your connection"
+            }
+            else {
+                response = res.choices[0].message.content;
+                log(response)
+        
+            }
+        });
+        
+        return `response: ${response}`
+        
+
+    }
     
-    async groqChat() {
-        const completion = await groq.chat.completions
-          .create({
-            messages: [
-              {
-                role: "user",
-                content: "Explain the importance of fast language models",
-              },
-            ],
-            model: "mixtral-8x7b-32768", 
-          })
-          .then((chatCompletion) => {
-            console.log(chatCompletion.choices[0]?.message?.content || "");
-          });
-      };
-}
-);
+});
 
 
 export default class IndicatorE extends Extension {
