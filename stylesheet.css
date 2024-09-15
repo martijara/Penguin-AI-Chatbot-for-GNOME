@@ -36,3 +36,16 @@
     border: 10px;
     border-radius: 13px;    
 }
+
+.llmMessage {
+    text-wrap:wrap;
+    background-color:dimgrey;
+    text-align: left;
+    margin-right: 40px;
+    text-size-adjust: 10;
+    margin-top: 10px;
+    text-emphasis-color: black;
+    font-size: medium;
+    border: 10px;
+    border-radius: 13px;    
+}

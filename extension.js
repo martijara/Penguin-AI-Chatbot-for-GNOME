@@ -17,6 +17,8 @@ import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/ex
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import Pango from 'gi://Pango';
+import {convertMD} from "./md2pango.js";
+
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -80,7 +82,7 @@ class Indicator extends PanelMenu.Button
         
 
         // --- EXTENSION BODY
-        let chatBox = new St.BoxLayout({
+        this.chatBox = new St.BoxLayout({
             vertical: true,
             style_class: 'popup-menu-box',
             style: 'text-wrap: wrap'
@@ -92,14 +94,14 @@ class Indicator extends PanelMenu.Button
             reactive: true
         });
 
-        this.chatView.set_child(chatBox);
+        this.chatView.set_child(this.chatBox);
 
 
         // Button action script
         this.submitInput.connect('clicked', () => {
             let input = this.chatInput.get_text();
 
-            this.messageDebug = new St.Label({
+            this.humanMessage = new St.Label({
                 style_class: 'humanMessage',
                 x_expand: true,
                 y_expand: true,
@@ -108,14 +110,13 @@ class Indicator extends PanelMenu.Button
 
 
             // Add a message to the body chat
-            this.messageDebug.clutter_text.set_markup(`${input}`);
-            this.messageDebug.clutter_text.single_line_mode = false;
-            this.messageDebug.clutter_text.line_wrap        = true;
-            this.messageDebug.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
-            this.messageDebug.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
+            this.humanMessage.clutter_text.set_markup(`${input}`);
+            this.humanMessage.clutter_text.single_line_mode = false;
+            this.humanMessage.clutter_text.line_wrap        = true;
+            this.humanMessage.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
+            this.humanMessage.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
     
-            chatBox.add_child(this.messageDebug);
-            this.chatView.set_child(chatBox);
+            this.chatBox.add_child(this.humanMessage);
 
             // Add input to chat history
             this.history.push({
@@ -123,7 +124,8 @@ class Indicator extends PanelMenu.Button
                 "content": input
             });
 
-            console.debug(this.openRouterChat());
+            this.openRouterChat();
+
         });
 
         let entryBox = new St.BoxLayout({
@@ -158,13 +160,6 @@ class Indicator extends PanelMenu.Button
         let _httpSession = new Soup.Session();
         let url = `https://openrouter.ai/api/v1/chat/completions`;
 
-        let response = 'Hi, Human'
-
-        //if(newKey != undefined){
-        //    this._settings.set_string("gemini-api-key", newKey);
-        //    GEMINIAPIKEY = newKey;
-        //}
-
         let message = Soup.Message.new('POST', url);
         
         message.request_headers.append(
@@ -175,16 +170,7 @@ class Indicator extends PanelMenu.Button
 
         let body = JSON.stringify({"model": OPENROUTER_CHABOT_MODEL, "messages": this.history});
         let bytes  = GLib.Bytes.new(body);
-        //message.set_request_body_from_bytes('application/json', 2, body);
-        //_httpSession.queue_message(message, async (_httpSession, message) =>  {
-        //    response = JSON.stringify(JSON.parse(message.response_body.data));
-            
-            // let aiResponse = res.candidates[0]?.content?.parts[0]?.text;
-        //    this.history.push({
-        //        "role": "assistant",
-        //        "content": "Hi"
-        //    });
-        //});
+
 
         message.set_request_body_from_bytes('application/json', bytes);
         _httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (_httpSession, result) => {
@@ -195,17 +181,51 @@ class Indicator extends PanelMenu.Button
             // Inspecting the response for dev purpose
             log(url)
             if(res.error?.code != 401 && res.error !== undefined){
-                response = "Error, try another model or check your connection"
+                let response = "Error, try another model or check your connection"
+
+                this.llmMessage = new St.Label({
+                    style_class: 'llmMessage',
+                    x_expand: true,
+                    y_expand: true,
+                    reactive: true
+                });
+    
+                this.llmMessage.clutter_text.set_markup(`${"Typing..."}`);
+                this.llmMessage.clutter_text.single_line_mode = false;
+                this.llmMessage.clutter_text.line_wrap        = true;
+                this.llmMessage.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
+                this.llmMessage.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
+    
+                this.llmMessage.clutter_text.set_markup(`${this.openRouterChat()}`);
+                let final = convertMD(response);
+                chatBox.add_child(final);
+                chatBox.add_child(this.llmMessage);
             }
             else {
-                response = res.choices[0].message.content;
+                let response = res.choices[0].message.content;
                 log(response)
-        
+
+                this.llmMessage = new St.Label({
+                    style_class: 'llmMessage',
+                    x_expand: true,
+                    y_expand: true,
+                    reactive: true
+                });
+    
+                this.llmMessage.clutter_text.set_markup(`${"Typing..."}`);
+                this.llmMessage.clutter_text.single_line_mode = false;
+                this.llmMessage.clutter_text.line_wrap        = true;
+                this.llmMessage.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
+                this.llmMessage.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
+
+                this.chatBox.add_child(this.llmMessage);
+                
+                let final = convertMD(response);
+                this.llmMessage.clutter_text.set_markup(final);
             }
+
+
         });
-        
-        return `response: ${response}`
-        
 
     }
     
