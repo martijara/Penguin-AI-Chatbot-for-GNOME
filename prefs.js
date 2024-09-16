@@ -1,3 +1,5 @@
+// Made by @coffeecionado 
+
 import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
 

@@ -1,4 +1,4 @@
-// extension.js - Controls GNOME Extensions behavior
+// Made by @coffeecionado
 
 
 // Importing necessary libraries
