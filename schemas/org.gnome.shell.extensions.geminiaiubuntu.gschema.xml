@@ -1,6 +1,6 @@
 <schemalist gettext-domain="gnome-shell-extensions">
-  <schema id="org.gnome.shell.extensions.llama-pilot"
-      path="/org/gnome/shell/extensions/llama-pilot/">
+  <schema id="org.gnome.shell.extensions.penguin-ai-chatbot"
+      path="/org/gnome/shell/extensions/penguin-ai-chatbot/">
 
     <key name="open-router-api-key" type="s">
         <default>"Input your key here"</default>

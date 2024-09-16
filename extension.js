@@ -47,13 +47,13 @@ class Indicator extends PanelMenu.Button
 
     _init(extension) {
         // --- INITIALIZATION AND ICON IN TOPBAR
-        super._init(0.0, _('Llama Copilot'));
+        super._init(0.0, _('Penguin: AI Chatbot'));
         this.extension = extension
         this._loadSettings();
 
         this.add_child(new St.Icon({
-            icon_name: 'Llama',
-            style_class: 'llama-icon',
+            icon_name: 'Penguin: AI Chatbot',
+            style_class: 'icon',
         }));
 
 

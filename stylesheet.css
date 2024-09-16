@@ -1,8 +1,8 @@
-.llama-icon {
-    background-image: url("assets/llama.png"); /* UI icons by Flaticon: https://www.flaticon.com/uicons */
-    background-size: 16px;
-    width: 16px;
-    height: 16px;
+.icon {
+    background-image: url("assets/icon.png"); /* UI icons by Flaticon: https://www.flaticon.com/uicons */
+    background-size: 15px;
+    width: 15px;
+    height: 15px;
     padding: 17px;
 }
 

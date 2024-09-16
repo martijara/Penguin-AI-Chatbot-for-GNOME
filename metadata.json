@@ -1,10 +1,10 @@
 {
-    "name" : "Llama Pilot",
-    "description" : "A GNOME Shell extension that allows you to talk with Llama 3.1.",
+    "name" : "Penguin: AI Chatbot",
+    "description" : "A GNOME Shell extension that connects to Open Router - a platform/marketplace that offers APIs to talk to LLMs. Some of these APIs are free to use, including the one used by default in the extension.",
     "shell-version" : [
         "46"
     ],
     "url" : "",
-    "uuid" : "llama-pilot@codeberg.org",
-    "settings-schema": "org.gnome.shell.extensions.llama-pilot"
+    "uuid" : "penguin-ai-chatbot@coffeecionado.gitlab.io",
+    "settings-schema": "org.gnome.shell.extensions.penguin-ai-chatbot"
 }
