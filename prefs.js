@@ -5,7 +5,7 @@ import Adw from 'gi://Adw';
 
 import { ExtensionPreferences, gettext as _ } from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-export default class ClipboardIndicatorPreferences extends ExtensionPreferences {
+export default class PenguinPreferences extends ExtensionPreferences {
     fillPreferencesWindow (window) {
         window._settings = this.getSettings();
         const settingsUI = new Settings(window._settings);

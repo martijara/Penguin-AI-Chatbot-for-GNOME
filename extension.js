@@ -25,12 +25,14 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 // Defining necessary variables (OpenRouter API)
 let OPENROUTER_API_KEY = ""
 let OPENROUTER_CHABOT_MODEL = "" 
+let url = `https://openrouter.ai/api/v1/chat/completions`;
 
 
 // Class that activates the extension
-const Indicator = GObject.registerClass(
-class Indicator extends PanelMenu.Button 
+const Penguin = GObject.registerClass(
+class Penguin extends PanelMenu.Button 
 {
+    
     _loadSettings () {
         this._settingsChangedId = this.extension.settings.connect('changed', () => {
             this._fetchSettings();
@@ -59,6 +61,8 @@ class Indicator extends PanelMenu.Button
 
         // ... INITIALIZATION OF SESSION VARIABLES
         this.history = []
+        this._httpSession = new Soup.Session();
+
 
         // --- EXTENSION FOOTER
         this.chatInput = new St.Entry({
@@ -136,9 +140,6 @@ class Indicator extends PanelMenu.Button
     };
 
     openRouterChat() {
-        let _httpSession = new Soup.Session();
-        let url = `https://openrouter.ai/api/v1/chat/completions`;
-
         let message = Soup.Message.new('POST', url);
         
         message.request_headers.append(
@@ -152,7 +153,7 @@ class Indicator extends PanelMenu.Button
 
 
         message.set_request_body_from_bytes('application/json', bytes);
-        _httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (_httpSession, result) => {
+        this._httpSession.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (_httpSession, result) => {
             let bytes = _httpSession.send_and_read_finish(result);
             let decoder = new TextDecoder('utf-8');
             let response = decoder.decode(bytes.get_data());
@@ -226,23 +227,28 @@ class Indicator extends PanelMenu.Button
     openSettings () {
         this.extension.openSettings();
     }
+
+    destroy() {
+        this._httpSession?.abort(); // <- Don't forget to make the session instance avaialable to the class
+        super.destroy();
+    }
     
 });
 
 
-export default class IndicatorE extends Extension {
+export default class PenguinExtension extends Extension {
     enable() {
-        this._indicator = new Indicator({
+        this._penguin = new Penguin({
             settings: this.getSettings(),
             openSettings: this.openPreferences,
             uuid: this.uuid
         });
 
-        Main.panel.addToStatusArea(this.uuid, this._indicator);
+        Main.panel.addToStatusArea(this.uuid, this._penguin);
     }
     disable() {
-        this._indicator.destroy();
-        this._indicator = null;
+        this._penguin.destroy();
+        this._penguin = null;
     }
 }
 

@@ -1,6 +1,6 @@
 {
     "name" : "Penguin: AI Chatbot",
-    "description" : "A GNOME Shell extension that connects to Open Router - a platform/marketplace that offers APIs to talk to LLMs. Some of these APIs are free to use, including the one used by default in the extension.",
+    "description" : "A GNOME Shell extension that uses to openrouter.ai services - a platform/marketplace that offers APIs to talk to LLMs. Some of these APIs are free to use, including the one used by default in the extension.",
     "shell-version" : [
         "46"
     ],
