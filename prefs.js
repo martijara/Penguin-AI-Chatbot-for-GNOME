@@ -40,7 +40,7 @@ class Settings {
         });
         const howToAPI = new Gtk.LinkButton({
             label: _("How to get API key?"),
-            uri: 'https://openrouter.ai/settings/keys'
+            uri: 'https://coffeecionado.gitlab.io/Penguin-AI-Chatbot-for-GNOME/'
         });
 
 

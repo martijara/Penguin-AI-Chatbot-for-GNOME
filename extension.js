@@ -162,7 +162,7 @@ class Indicator extends PanelMenu.Button
             log(url);
 
             if (res.error?.code == 401) {
-                let response = "Hmm... It seems like your API key is not present. You can type it here or in the extension settings. If you need extra help, go to: [this link](https://www.wikipedia.com/)";
+                let response = "Hmm... It seems like your API key is not present. You can type it here or in the extension settings. Click below to enter your API key and view the guide on how to get one.";
 
                 let final = convertMD(response);
                 this.initializeTextBox('llmMessage', final);
