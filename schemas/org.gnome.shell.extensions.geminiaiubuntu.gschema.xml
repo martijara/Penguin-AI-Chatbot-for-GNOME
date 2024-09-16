@@ -1,0 +1,16 @@
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.llama-pilot"
+      path="/org/gnome/shell/extensions/llama-pilot/">
+
+    <key name="open-router-api-key" type="s">
+        <default>"Input your key here"</default>
+        <summary>Open Router Key</summary>
+        <description>Add the Open Router Key in order to use this extension</description>
+    </key>
+    <key name="llm-model" type="s">
+        <default>"mattshumer/reflection-70b:free"</default>
+        <summary>LLM model from Open Router</summary>
+        <description>LLM model for prompting</description>
+    </key>
+  </schema>
+</schemalist>

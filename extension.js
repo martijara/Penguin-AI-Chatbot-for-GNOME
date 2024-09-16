@@ -19,23 +19,37 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import Pango from 'gi://Pango';
 import {convertMD} from "./md2pango.js";
 
-import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
-
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 
 // Defining necessary variables (OpenRouter API)
 let OPENROUTER_API_KEY = ""
-let OPENROUTER_CHABOT_MODEL = "mattshumer/reflection-70b:free"
+let OPENROUTER_CHABOT_MODEL = "" 
 
 
 // Class that activates the extension
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button 
 {
-    _init() {
+    _loadSettings () {
+        this._settingsChangedId = this.extension.settings.connect('changed', () => {
+            this._fetchSettings();
+            this._initFirstResponse();
+        });
+        this._fetchSettings();
+    }
+
+    _fetchSettings () {
+        const { settings } = this.extension;
+        OPENROUTER_API_KEY           = settings.get_string("open-router-api-key");
+        OPENROUTER_CHABOT_MODEL          = settings.get_string("llm-model");
+    }
+
+    _init(extension) {
         // --- INITIALIZATION AND ICON IN TOPBAR
         super._init(0.0, _('Llama Copilot'));
+        this.extension = extension
+        this._loadSettings();
 
         this.add_child(new St.Icon({
             icon_name: 'Llama',
@@ -46,24 +60,9 @@ class Indicator extends PanelMenu.Button
         // ... INITIALIZATION OF SESSION VARIABLES
         this.history = []
 
-        
-        // --- EXTENSION HEADER
-        let descriptiveBox = new St.BoxLayout({
-            vertical: true,
-            style_class: 'popup-menu-box'
-        });
-
-        this.header = new St.Label({
-            text: "Llama Copilot",
-            style: 'text-align: center',
-        });
-
-        descriptiveBox.add_child(this.header);
-
-
         // --- EXTENSION FOOTER
         this.chatInput = new St.Entry({
-            hint_text: "Chat with Llama",
+            hint_text: "Chat with me",
             can_focus: true,
             track_hover: true,
             style_class: 'messageInput',
@@ -71,15 +70,25 @@ class Indicator extends PanelMenu.Button
             y_expand: true
         });
 
-        this.submitInput = new St.Button({
-            label: "Send",
-            style_class: 'icon-button',
-            style: 'margin-top: 8px; margin-right: 8px; margin-left: 8px; margin-bottom: 8px; width: 250px; height: 10px !important; border-radius: 20px;',
-            reactive: true,
-            track_hover: true,
-            can_focus: true
+        this.chatInput.clutter_text.connect('activate', (actor) => {
+            log("Enter clicked")
+
+            let input = this.chatInput.get_text();
+
+            
+            this.initializeTextBox('humanMessage', input)
+
+            // Add input to chat history
+            this.history.push({
+                "role": "user",
+                "content": input
+            });
+
+            this.openRouterChat();
+
+            this.chatInput.set_reactive(false)
+            this.chatInput.set_text("I am Thinking...")
         });
-        
 
         // --- EXTENSION BODY
         this.chatBox = new St.BoxLayout({
@@ -97,44 +106,15 @@ class Indicator extends PanelMenu.Button
         this.chatView.set_child(this.chatBox);
 
 
-        // Button action script
-        this.submitInput.connect('clicked', () => {
-            let input = this.chatInput.get_text();
-
-            this.humanMessage = new St.Label({
-                style_class: 'humanMessage',
-                x_expand: true,
-                y_expand: true,
-                reactive: true
-            });
-
-
-            // Add a message to the body chat
-            this.humanMessage.clutter_text.set_markup(`${input}`);
-            this.humanMessage.clutter_text.single_line_mode = false;
-            this.humanMessage.clutter_text.line_wrap        = true;
-            this.humanMessage.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
-            this.humanMessage.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
     
-            this.chatBox.add_child(this.humanMessage);
-
-            // Add input to chat history
-            this.history.push({
-                "role": "user",
-                "content": input
-            });
-
-            this.openRouterChat();
-
-        });
-
         let entryBox = new St.BoxLayout({
             vertical: true,
             style_class: 'popup-menu-box'
         });
 
         entryBox.add_child(this.chatInput);
-        entryBox.add_child(this.submitInput);
+
+
         
 
         // --- EXTENSION PARENT BOX LAYOUT
@@ -144,7 +124,6 @@ class Indicator extends PanelMenu.Button
             style_class: 'popup-menu-box'
         });
 
-        layout.add_child(descriptiveBox);
         layout.add_child(this.chatView);
         layout.add_child(entryBox);
 
@@ -178,55 +157,74 @@ class Indicator extends PanelMenu.Button
             let decoder = new TextDecoder('utf-8');
             let response = decoder.decode(bytes.get_data());
             let res = JSON.parse(response);
-            // Inspecting the response for dev purpose
-            log(url)
-            if(res.error?.code != 401 && res.error !== undefined){
-                let response = "Error, try another model or check your connection"
 
-                this.llmMessage = new St.Label({
-                    style_class: 'llmMessage',
-                    x_expand: true,
-                    y_expand: true,
-                    reactive: true
-                });
-    
-                this.llmMessage.clutter_text.set_markup(`${"Typing..."}`);
-                this.llmMessage.clutter_text.single_line_mode = false;
-                this.llmMessage.clutter_text.line_wrap        = true;
-                this.llmMessage.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
-                this.llmMessage.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
-    
-                this.llmMessage.clutter_text.set_markup(`${this.openRouterChat()}`);
+            log(res);
+            log(url);
+
+            if (res.error?.code == 401) {
+                let response = "Hmm... It seems like your API key is not present. You can type it here or in the extension settings. If you need extra help, go to: [this link](https://www.wikipedia.com/)";
+
                 let final = convertMD(response);
-                chatBox.add_child(final);
-                chatBox.add_child(this.llmMessage);
+                this.initializeTextBox('llmMessage', final);
+
+                let settingsButton = new St.Button({
+                    label: "Click here to set up your API for connecting to the chatbot", can_focus: true,  toggle_mode: true});
+        
+                settingsButton.connect('clicked', (self) => {
+                    log("Hi, working?");
+                    this.openSettings();
+                });
+
+                this.chatBox.add_child(settingsButton)
+
+                this.chatInput.set_reactive(true)
+                this.chatInput.set_text("")
+                return;
+            }
+            if(res.error?.code != 401 && res.error !== undefined){
+                let response = "Error, try another model or check your connection";
+
+                this.initializeTextBox('llmMessage', response);
+                this.chatInput.set_reactive(true)
+                this.chatInput.set_text("")
             }
             else {
                 let response = res.choices[0].message.content;
-                log(response)
-
-                this.llmMessage = new St.Label({
-                    style_class: 'llmMessage',
-                    x_expand: true,
-                    y_expand: true,
-                    reactive: true
-                });
-    
-                this.llmMessage.clutter_text.set_markup(`${"Typing..."}`);
-                this.llmMessage.clutter_text.single_line_mode = false;
-                this.llmMessage.clutter_text.line_wrap        = true;
-                this.llmMessage.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
-                this.llmMessage.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
-
-                this.chatBox.add_child(this.llmMessage);
                 
                 let final = convertMD(response);
-                this.llmMessage.clutter_text.set_markup(final);
+                this.initializeTextBox('llmMessage', final);
+
+                // Add input to chat history
+                this.history.push({
+                    "role": "assistant",
+                    "content": response
+                });
+
+                this.chatInput.set_reactive(true)
+                this.chatInput.set_text("")
             }
-
-
         });
 
+    }
+
+    initializeTextBox(type, text) {
+        // text has to be a string
+        let label = new St.Label({
+            style_class: type,
+            y_expand: true
+        });
+
+        label.clutter_text.single_line_mode = false;
+        label.clutter_text.line_wrap        = true;
+        label.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
+        label.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
+
+        label.clutter_text.set_markup(text);
+        this.chatBox.add_child(label);
+    }
+
+    openSettings () {
+        this.extension.openSettings();
     }
     
 });
@@ -234,7 +232,12 @@ class Indicator extends PanelMenu.Button
 
 export default class IndicatorE extends Extension {
     enable() {
-        this._indicator = new Indicator();
+        this._indicator = new Indicator({
+            settings: this.getSettings(),
+            openSettings: this.openPreferences,
+            uuid: this.uuid
+        });
+
         Main.panel.addToStatusArea(this.uuid, this._indicator);
     }
     disable() {
