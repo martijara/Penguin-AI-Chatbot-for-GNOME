@@ -4,7 +4,7 @@
 
 An assistant interface for GNOME that works by using a personal Open Router LLM API. For more information on what Open Router is, go [here](https://openrouter.ai/)
 
-[🐧 Linux User? Download this extension for GNOME Shell 👣 ](http://github.com/orderedlist/minimal)
+[🐧 Linux User? Download this extension for GNOME Shell 👣 ](#)
 
 
 # Getting the Open Router API
