@@ -1,4 +1,4 @@
-## [Website]()
+## [Website](https://coffeecionado.gitlab.io/Penguin-AI-Chatbot-for-GNOME/)
 
 # Penguin: AI Chatbot
 
