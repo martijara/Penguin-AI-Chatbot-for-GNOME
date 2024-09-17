@@ -1,5 +1,6 @@
 .icon {
     background-image: url("assets/icon.png"); /* UI icons by Flaticon: https://www.flaticon.com/uicons */
+    mask-image: url("assets/icon.png");
     background-size: 15px;
     width: 15px;
     height: 15px;

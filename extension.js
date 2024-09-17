@@ -4,14 +4,8 @@
 // Importing necessary libraries
 import GObject from 'gi://GObject';
 import St from 'gi://St';
-import Clutter from 'gi://Clutter';
 import Soup from 'gi://Soup';
 import GLib from 'gi://GLib';
-
-import Gio from 'gi://Gio';
-import Gtk from 'gi://Gtk?version=4.0';
-import Shell from 'gi://Shell';
-import System from 'system';
 
 import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
