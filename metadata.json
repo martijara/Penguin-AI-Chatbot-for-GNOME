@@ -1,6 +1,6 @@
 {
     "name" : "Penguin: AI Chatbot",
-    "description" : "A GNOME Shell extension that uses openrouter.ai services - a platform/marketplace that offers APIs to talk to LLMs. Some of these APIs are free to use, including the one used by default in the extension: Llama 3.1 70B",
+    "description" : "A GNOME Shell extension that uses openrouter.ai services - a platform/marketplace that offers APIs to talk to LLMs. Some of these APIs are free to use, including the one used by default in the extension: Reflection Llama 3.1 70B",
     "shell-version" : [
         "46",
         "47"
@@ -9,5 +9,5 @@
     "url" : "https://coffeecionado.gitlab.io/Penguin-AI-Chatbot-for-GNOME/",
     "uuid" : "penguin-ai-chatbot@coffeecionado.gitlab.io",
     "settings-schema": "org.gnome.shell.extensions.penguin-ai-chatbot",
-    "version": 4
+    "version": 5
 }
