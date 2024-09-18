@@ -65,9 +65,7 @@ class Penguin extends PanelMenu.Button
             hint_text: "Chat with me",
             can_focus: true,
             track_hover: true,
-            style_class: 'messageInput',
-            style: 'margin-left: 8px; margin-right: 8px; margin-top: 8px',
-            y_expand: true
+            style_class: 'messageInput'
         });
 
         this.chatInput.clutter_text.connect('activate', (actor) => {
@@ -117,6 +115,52 @@ class Penguin extends PanelMenu.Button
             
         });
 
+        this.newConversation = new St.Button({ 
+            style: "width: 16px; height:16px; margin-right: 15px; margin-left: 10px'",
+        
+            child: new St.Icon({
+                icon_name: 'tab-new-symbolic',
+                style: 'width: 30px; height:30px'}) 
+        });
+
+        this.newConversation.connect('clicked', (actor) => {
+            if (this.chatInput.get_text() == "Create a new conversation (Deletes current)") {
+                this.history = []
+
+                this.chatBox.destroy_all_children()
+            }
+            else {
+
+                this.initializeTextBox('llmMessage', "You can't create a new conversation while I am thinking");
+            }
+        });
+
+        this.newConversation.connect('enter-event', (actor) => {
+            if (this.chatInput.get_text() == "") {
+                this.chatInput.set_reactive(false)
+                this.chatInput.set_text("Create a new conversation (Deletes current)")
+            }
+        });
+
+        this.newConversation.connect('leave-event', (actor) => {
+            if (this.chatInput.get_text() == "Create a new conversation (Deletes current)") {
+                this.chatInput.set_reactive(true)
+                this.chatInput.set_text("")
+            }
+        });
+
+
+        let entryBox = new St.BoxLayout({
+            vertical: false,
+            style_class: 'popup-menu-box'
+        });
+
+        entryBox.add_child(this.chatInput);
+        entryBox.add_child(this.newConversation);
+
+
+
+
         // --- EXTENSION BODY
         this.chatBox = new St.BoxLayout({
             vertical: true,
@@ -133,15 +177,7 @@ class Penguin extends PanelMenu.Button
         this.chatView.set_child(this.chatBox);
 
 
-    
-        let entryBox = new St.BoxLayout({
-            vertical: true,
-            style_class: 'popup-menu-box'
-        });
-
-        entryBox.add_child(this.chatInput);
-
-
+        // tab-new-symbolic
         
 
         // --- EXTENSION PARENT BOX LAYOUT
@@ -186,16 +222,16 @@ class Penguin extends PanelMenu.Button
             log(url);
 
             if (res.error?.code == 401) {
-                let response = "Hmm... It seems like your API key is not present. You can type it here or in the extension settings. Click below to enter your API key and view the guide on how to get one.";
+                let response = "Hmm... It seems like your API key is not present or is incorrect. You can type it here or in the extension settings. Click below to enter your API key and view the guide on how to get one.";
 
                 let final = convertMD(response);
                 this.initializeTextBox('llmMessage', final);
 
                 let settingsButton = new St.Button({
-                    label: "Click here to set up your API for connecting to the chatbot", can_focus: true,  toggle_mode: true});
-        
+                    label: "Click here to set up your API for connecting to the chatbot", can_focus: true,  toggle_mode: true
+                });
+                
                 settingsButton.connect('clicked', (self) => {
-                    log("Hi, working?");
                     this.openSettings();
                 });
 
@@ -206,9 +242,21 @@ class Penguin extends PanelMenu.Button
                 return;
             }
             if(res.error?.code != 401 && res.error !== undefined){
-                let response = "Error, try another model or check your connection";
+                let response = "Oh no! It seems like the LLM model you entered is either down or not correct. Make sure you didn't make any errors when inputting it in the settings. You can always use the default extension model (sent in the next message). Check your connection either way";
 
                 this.initializeTextBox('llmMessage', response);
+                this.initializeTextBox('llmMessage', "mattshumer/reflection-70b:free");
+
+                let settingsButton = new St.Button({
+                    label: "Click here to check or change your model ID", can_focus: true,  toggle_mode: true
+                });
+        
+                settingsButton.connect('clicked', (self) => {
+                    this.openSettings();
+                });
+
+                this.chatBox.add_child(settingsButton)
+
                 this.chatInput.set_reactive(true)
                 this.chatInput.set_text("")
             }
@@ -252,14 +300,6 @@ class Penguin extends PanelMenu.Button
         box.add_child(label)
 
         if(type != 'humanMessage') {
-            let deleteButton = new St.Button({ 
-                style: "margin-bottom: 5px; margin-top: 10px; margin-left:0px; margin-right: 350px; 'width: 16px; height:16px'",
-            
-                child: new St.Icon({
-                    icon_name: 'edit-delete-symbolic',
-                    style: 'width: 16px; height:16px'}) 
-            });
-
             label.connect('button-press-event', (actor) => {
                 this.extension.clipboard.set_text(St.ClipboardType.CLIPBOARD, label.clutter_text.get_text());
             });
@@ -270,7 +310,7 @@ class Penguin extends PanelMenu.Button
 
                 
                 if (this.chatInput.get_text() != "I am Thinking...") {
-                    this.timeoutCopy = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 0.5, () => { 
+                    this.timeoutCopy = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 0.4, () => { 
                         this.chatInput.set_reactive(false);
                         this.chatInput.set_text("Click on text to copy");});
                 }

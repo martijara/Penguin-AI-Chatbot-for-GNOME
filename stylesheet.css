@@ -18,10 +18,11 @@
 }
 
 .messageInput {
-    width: 250px;
+    width: 357px;
     height: 20px !important;
     border-radius: 100px;
     max-width: 400px;
+    margin-left: 15px;
     max-height:400px;
     overflow: hidden;
 }
