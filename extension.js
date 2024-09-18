@@ -56,6 +56,8 @@ class Penguin extends PanelMenu.Button
         // ... INITIALIZATION OF SESSION VARIABLES
         this.history = []
         this._httpSession = new Soup.Session();
+        this.timeoutCopy = null
+        this.timeoutResponse = null
 
 
         // --- EXTENSION FOOTER
@@ -69,6 +71,11 @@ class Penguin extends PanelMenu.Button
         });
 
         this.chatInput.clutter_text.connect('activate', (actor) => {
+            if (this.timeoutResponse) {
+                GLib.Source.remove(this.timeoutResponse);
+                this.timeoutResponse = null;
+            }
+
             log("Enter clicked")
 
             let input = this.chatInput.get_text();
@@ -86,6 +93,28 @@ class Penguin extends PanelMenu.Button
 
             this.chatInput.set_reactive(false)
             this.chatInput.set_text("I am Thinking...")
+
+            this.timeoutResponse = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 60, () => { 
+                if (this.chatInput.get_text("I am Thinking...")) {
+                    let response = "Connection time out. Check your internet connection.";
+
+                    this.initializeTextBox('llmMessage', response);
+                    this.chatInput.set_reactive(true)
+                    this.chatInput.set_text("")
+
+                    if (this.timeoutResponse) {
+                        GLib.Source.remove(this.timeoutResponse);
+                        this.timeoutResponse = null;
+                    }
+                }
+                else {
+                    if (this.timeoutResponse) {
+                        GLib.Source.remove(this.timeoutResponse);
+                        this.timeoutResponse = null;
+                    }
+                }
+                });
+            
         });
 
         // --- EXTENSION BODY
@@ -212,8 +241,7 @@ class Penguin extends PanelMenu.Button
         let label = new St.Label({
             style_class: type,
             y_expand: true,
-            reactive: true,
-            can_focus: true
+            reactive: true
         });
 
         label.clutter_text.single_line_mode = false;
@@ -239,13 +267,21 @@ class Penguin extends PanelMenu.Button
             
 
             label.connect('enter-event', (actor) => {
+
+                
                 if (this.chatInput.get_text() != "I am Thinking...") {
-                    this.chatInput.set_reactive(false);
-                    this.chatInput.set_text("Click on text to copy");
+                    this.timeoutCopy = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 0.5, () => { 
+                        this.chatInput.set_reactive(false);
+                        this.chatInput.set_text("Click on text to copy");});
                 }
             });
 
             label.connect('leave-event', (actor) => {
+                if (this.timeoutCopy) {
+                    GLib.Source.remove(this.timeoutCopy);
+                    this.timeoutCopy = null;
+                }
+
                 if (this.chatInput.get_text() != "I am Thinking...") {
                     this.chatInput.set_reactive(true);
                     this.chatInput.set_text("");
@@ -263,6 +299,16 @@ class Penguin extends PanelMenu.Button
     }
 
     destroy() {
+        if (this.timeoutCopy) {
+            GLib.Source.remove(this.timeoutCopy);
+            this.timeoutCopy = null;
+        }
+
+        if (this.timeoutResponse) {
+            GLib.Source.remove(this.timeoutResponse);
+            this.timeoutResponse = null;
+        }
+
         this._httpSession?.abort(); // <- Don't forget to make the session instance avaialable to the class
         super.destroy();
     }
@@ -286,3 +332,5 @@ export default class PenguinExtension extends Extension {
         this._penguin = null;
     }
 }
+
+
