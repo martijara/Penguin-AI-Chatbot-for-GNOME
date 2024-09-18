@@ -194,7 +194,7 @@ class Penguin extends PanelMenu.Button
 
         this.timeoutResponse = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 90, () => { 
             if (this.chatInput.get_text() == "I am Thinking...") {
-                let response = "Connection time out. Check your internet connection.";
+                let response = "Ah! Bad internet moments. They help to reconnect with the world around us. But they also make us frustrated. Are we addicts in this new surveillance society? Or are we just trying to get answers?";
 
                 this.initializeTextBox('llmMessage', response);
                 this.chatInput.set_reactive(true)
@@ -247,7 +247,28 @@ class Penguin extends PanelMenu.Button
                 this.chatInput.set_text("")
                 return;
             }
-            if(res.error?.code != 401 && res.error !== undefined){
+            if (res.error?.code == 429) {
+                let response = "You have ran out of credits. That's unfortunate! You can create another OpenRouter.ai account with a new API Key, or purchase more credits. If you are a free user, this issue will be fixed in the upcoming updates with more service options";
+
+                let final = convertMD(response);
+                this.initializeTextBox('llmMessage', final);
+
+                let settingsButton = new St.Button({
+                    label: "Click here for help creating a new account and key", can_focus: true,  toggle_mode: true
+                });
+                    
+                settingsButton.connect('clicked', (self) => {
+                    this.openSettings();
+                });
+    
+                this.chatBox.add_child(settingsButton)
+    
+                this.chatInput.set_reactive(true)
+                this.chatInput.set_text("")
+                return;
+            }
+
+            if (res.error?.code != 401 && res.error?.code != 429 && res.error !== undefined){
                 let response = "Oh no! It seems like the LLM model you entered is either down or not correct. Make sure you didn't make any errors when inputting it in the settings. You can always use the default extension model (sent in the next message). Check your connection either way";
     
                 this.initializeTextBox('llmMessage', response);
