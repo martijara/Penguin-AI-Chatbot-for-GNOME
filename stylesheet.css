@@ -28,9 +28,8 @@
 
 .humanMessage {
     text-wrap:wrap;
-    background-color: #006AFF;
     text-align: left;
-    margin-left: 40px;
+    background-color: #006AFF;
     text-size-adjust: 12;
     font-weight: bolder;
     margin-top: 5px;
@@ -38,18 +37,26 @@
     border: 10px;
     border-radius: 13px;
 }
+.humanMessage-box {
+    margin-left: 40px;
+    margin-top: 5px;
+}
 
 .llmMessage {
     text-wrap:wrap;
     background-color:rgb(96, 99, 102);
     text-align: left;
-    margin-right: 40px;
     text-size-adjust: 12;
     font-weight: bolder;
-    margin-top: 5px;
     font-size: medium;
+    margin-top: 5px;
     border: 10px;
     border-radius: 13px;    
+}
+
+.llmMessage-box {
+    margin-right: 40px;
+    margin-top: 5px; 
 }
 
 .settings {

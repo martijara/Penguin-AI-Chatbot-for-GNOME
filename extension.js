@@ -64,7 +64,7 @@ class Penguin extends PanelMenu.Button
             can_focus: true,
             track_hover: true,
             style_class: 'messageInput',
-            style: 'margin-left: 8px; margin-right: 8px; margin-top: 8px;',
+            style: 'margin-left: 8px; margin-right: 8px; margin-top: 8px',
             y_expand: true
         });
 
@@ -203,10 +203,17 @@ class Penguin extends PanelMenu.Button
     }
 
     initializeTextBox(type, text) {
+        let box = new St.BoxLayout({
+            vertical: true,
+            style_class: `${type}-box`
+        });
+        
         // text has to be a string
         let label = new St.Label({
             style_class: type,
-            y_expand: true
+            y_expand: true,
+            reactive: true,
+            can_focus: true
         });
 
         label.clutter_text.single_line_mode = false;
@@ -214,8 +221,41 @@ class Penguin extends PanelMenu.Button
         label.clutter_text.line_wrap_mode   = Pango.WrapMode.WORD_CHAR;
         label.clutter_text.ellipsize        = Pango.EllipsizeMode.NONE;
 
+        box.add_child(label)
+
+        if(type != 'humanMessage') {
+            let deleteButton = new St.Button({ 
+                style: "margin-bottom: 5px; margin-top: 10px; margin-left:0px; margin-right: 350px; 'width: 16px; height:16px'",
+            
+                child: new St.Icon({
+                    icon_name: 'edit-delete-symbolic',
+                    style: 'width: 16px; height:16px'}) 
+            });
+
+            label.connect('button-press-event', (actor) => {
+                this.extension.clipboard.set_text(St.ClipboardType.CLIPBOARD, label.clutter_text.get_text());
+            });
+            
+            
+
+            label.connect('enter-event', (actor) => {
+                if (this.chatInput.get_text() != "I am Thinking...") {
+                    this.chatInput.set_reactive(false);
+                    this.chatInput.set_text("Click on text to copy");
+                }
+            });
+
+            label.connect('leave-event', (actor) => {
+                if (this.chatInput.get_text() != "I am Thinking...") {
+                    this.chatInput.set_reactive(true);
+                    this.chatInput.set_text("");
+                }
+            });
+            
+        } 
+
         label.clutter_text.set_markup(text);
-        this.chatBox.add_child(label);
+        this.chatBox.add_child(box);
     }
 
     openSettings () {
@@ -234,6 +274,7 @@ export default class PenguinExtension extends Extension {
     enable() {
         this._penguin = new Penguin({
             settings: this.getSettings(),
+            clipboard: St.Clipboard.get_default(),
             openSettings: this.openPreferences,
             uuid: this.uuid
         });
@@ -245,5 +286,3 @@ export default class PenguinExtension extends Extension {
         this._penguin = null;
     }
 }
-
-
