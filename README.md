@@ -28,4 +28,4 @@ That's it. You can use the extension now. You don't need to change the default L
 
 # Showcase
 
-![image](https://github.com/user-attachments/assets/0d630651-52ba-44c5-99bc-2a37dbc8dc4b)
+![Screenshot from 2024-09-18 12-59-32](https://github.com/user-attachments/assets/26af0878-cc34-4f73-85e1-9a42aa1bde7b)
