@@ -9,5 +9,5 @@
     "url" : "https://coffeecionado.gitlab.io/Penguin-AI-Chatbot-for-GNOME/",
     "uuid" : "penguin-ai-chatbot@coffeecionado.gitlab.io",
     "settings-schema": "org.gnome.shell.extensions.penguin-ai-chatbot",
-    "version": 6
+    "version": 7
 }
