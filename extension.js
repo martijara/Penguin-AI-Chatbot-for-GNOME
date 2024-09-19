@@ -19,7 +19,9 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 // Defining necessary variables (OpenRouter API)
 let OPENROUTER_API_KEY = ""
 let OPENROUTER_CHABOT_MODEL = "" 
+let HISTORY = []
 let url = `https://openrouter.ai/api/v1/chat/completions`;
+
 
 
 // Class that activates the extension
@@ -27,10 +29,10 @@ const Penguin = GObject.registerClass(
 class Penguin extends PanelMenu.Button 
 {
     
+    
     _loadSettings () {
         this._settingsChangedId = this.extension.settings.connect('changed', () => {
             this._fetchSettings();
-            this._initFirstResponse();
         });
         this._fetchSettings();
     }
@@ -39,6 +41,7 @@ class Penguin extends PanelMenu.Button
         const { settings } = this.extension;
         OPENROUTER_API_KEY           = settings.get_string("open-router-api-key");
         OPENROUTER_CHABOT_MODEL          = settings.get_string("llm-model");
+        HISTORY                     = JSON.parse(settings.get_string("history"));
     }
 
     _init(extension) {
@@ -68,13 +71,12 @@ class Penguin extends PanelMenu.Button
             style_class: 'messageInput'
         });
 
+        // Enter clicked
         this.chatInput.clutter_text.connect('activate', (actor) => {
             if (this.timeoutResponse) {
                 GLib.Source.remove(this.timeoutResponse);
                 this.timeoutResponse = null;
             }
-
-            log("Enter clicked")
 
             let input = this.chatInput.get_text();
 
@@ -104,6 +106,9 @@ class Penguin extends PanelMenu.Button
         this.newConversation.connect('clicked', (actor) => {
             if (this.chatInput.get_text() == "Create a new conversation (Deletes current)" ||  this.chatInput.get_text() != "I am Thinking...") {
                 this.history = []
+
+                const { settings } = this.extension;
+                settings.set_string("history", "[]");
 
                 this.chatBox.destroy_all_children()
             }
@@ -146,6 +151,10 @@ class Penguin extends PanelMenu.Button
             style: 'text-wrap: wrap'
         });
 
+        this.chatInput.set_reactive(false)
+        this.chatInput.set_text("Loading history...")
+        this._loadHistory();
+
         this.chatView = new St.ScrollView({
             enable_mouse_scrolling: true,
             style_class: 'chat-scrolling',
@@ -174,7 +183,27 @@ class Penguin extends PanelMenu.Button
         popUp.actor.add_child(layout);
 
         this.menu.addMenuItem(popUp);
+
+        
     };
+
+    _loadHistory() {
+        this.history = HISTORY
+
+        this.history.forEach(json => {
+            if (json.role == "user") {
+                this.initializeTextBox("humanMessage", convertMD(json.content));
+            }
+            else {
+                this.initializeTextBox("llmMessage", convertMD(json.content));
+            }
+        });
+
+        this.chatInput.set_reactive(true)
+        this.chatInput.set_text("")
+
+        return;
+    }
 
     
     openRouterChat() {
@@ -223,9 +252,6 @@ class Penguin extends PanelMenu.Button
             let decoder = new TextDecoder('utf-8');
             let response = decoder.decode(bytes.get_data());
             let res = JSON.parse(response);
-
-            log(res);
-            log(url);
     
             if (res.error?.code == 401) {
                 let response = "Hmm... It seems like your API key is not present or is incorrect. You can type it in the extension settings. Click below to enter your API key and view the guide on how to get one.";
@@ -300,9 +326,12 @@ class Penguin extends PanelMenu.Button
                     "role": "assistant",
                     "content": response
                 });
+
+                const { settings } = this.extension;
+                settings.set_string("history", JSON.stringify(this.history));
     
-                this.chatInput.set_reactive(true)
-                this.chatInput.set_text("")
+                this.chatInput.set_reactive(true);
+                this.chatInput.set_text("");
 
                 return;
             }

@@ -12,5 +12,10 @@
         <summary>LLM model from Open Router</summary>
         <description>LLM model for prompting</description>
     </key>
+    <key name="history" type="s">
+        <default>"[]"</default>
+        <summary>Chat History</summary>
+        <description>Saving chat history as JSON.Stringify</description>
+    </key>
   </schema>
 </schemalist>
