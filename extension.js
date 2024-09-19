@@ -409,6 +409,7 @@ class Penguin extends PanelMenu.Button
         }
 
         this._httpSession?.abort(); // <- Don't forget to make the session instance avaialable to the class
+        HISTORY = null;
         super.destroy();
     }
     
