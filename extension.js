@@ -1,4 +1,4 @@
-// Made by @coffeecionado
+// Made by @martijara
 
 
 // Importing necessary libraries
@@ -17,9 +17,13 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 
 // Defining necessary variables (OpenRouter API)
-let OPENROUTER_API_KEY = ""
-let OPENROUTER_CHABOT_MODEL = "" 
-let HISTORY = []
+let OPENROUTER_API_KEY = "";
+let OPENROUTER_CHABOT_MODEL = ""; 
+let HISTORY = [];
+let BACKGROUND_COLOR_HUMAN_MESSAGE = "";
+let BACKGROUND_COLOR_LLM_MESSAGE = "";
+let COLOR_HUMAN_MESSAGE = "";
+let COLOR_LLM_MESSAGE = ""
 let url = `https://openrouter.ai/api/v1/chat/completions`;
 
 
@@ -41,7 +45,14 @@ class Penguin extends PanelMenu.Button
         const { settings } = this.extension;
         OPENROUTER_API_KEY           = settings.get_string("open-router-api-key");
         OPENROUTER_CHABOT_MODEL          = settings.get_string("llm-model");
-        HISTORY                     = JSON.parse(settings.get_string("history"));
+
+        BACKGROUND_COLOR_HUMAN_MESSAGE      = settings.get_string("human-message-color");
+        BACKGROUND_COLOR_LLM_MESSAGE       = settings.get_string("llm-message-color");
+
+        COLOR_HUMAN_MESSAGE      = settings.get_string("human-message-text-color");
+        COLOR_LLM_MESSAGE       = settings.get_string("llm-message-text-color");
+
+        HISTORY           = JSON.parse(settings.get_string("history"));
     }
 
     _init(extension) {
@@ -81,7 +92,7 @@ class Penguin extends PanelMenu.Button
             let input = this.chatInput.get_text();
 
             
-            this.initializeTextBox('humanMessage', input)
+            this.initializeTextBox('humanMessage', input, BACKGROUND_COLOR_HUMAN_MESSAGE, COLOR_HUMAN_MESSAGE)
 
             // Add input to chat history
             this.history.push({
@@ -114,7 +125,7 @@ class Penguin extends PanelMenu.Button
             }
             else {
 
-                this.initializeTextBox('llmMessage', "You can't create a new conversation while I am thinking");
+                this.initializeTextBox('llmMessage', "You can't create a new conversation while I am thinking", BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
             }
         });
 
@@ -192,10 +203,10 @@ class Penguin extends PanelMenu.Button
 
         this.history.forEach(json => {
             if (json.role == "user") {
-                this.initializeTextBox("humanMessage", convertMD(json.content));
+                this.initializeTextBox("humanMessage", convertMD(json.content), BACKGROUND_COLOR_HUMAN_MESSAGE, COLOR_HUMAN_MESSAGE);
             }
             else {
-                this.initializeTextBox("llmMessage", convertMD(json.content));
+                this.initializeTextBox("llmMessage", convertMD(json.content), BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
             }
         });
 
@@ -225,7 +236,7 @@ class Penguin extends PanelMenu.Button
             if (this.chatInput.get_text() == "I am Thinking...") {
                 let response = "Ah! Bad internet moments. They help to reconnect with the world around us. But they also make us frustrated. Are we addicts in this new surveillance society? Or are we just trying to get answers?";
 
-                this.initializeTextBox('llmMessage', response);
+                this.initializeTextBox('llmMessage', response, BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
                 this.chatInput.set_reactive(true)
                 this.chatInput.set_text("")
 
@@ -257,7 +268,7 @@ class Penguin extends PanelMenu.Button
                 let response = "Hmm... It seems like your API key is not present or is incorrect. You can type it in the extension settings. Click below to enter your API key and view the guide on how to get one.";
 
                 let final = convertMD(response);
-                this.initializeTextBox('llmMessage', final);
+                this.initializeTextBox('llmMessage', final, BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
 
                 let settingsButton = new St.Button({
                     label: "Click here to set up your API for connecting to the chatbot", can_focus: true,  toggle_mode: true
@@ -277,7 +288,7 @@ class Penguin extends PanelMenu.Button
                 let response = "You have ran out of credits. That's unfortunate! You can create another OpenRouter.ai account with a new API Key, or purchase more credits. If you are a free user, this issue will be fixed in the upcoming updates with more service options";
 
                 let final = convertMD(response);
-                this.initializeTextBox('llmMessage', final);
+                this.initializeTextBox('llmMessage', final, BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
 
                 let settingsButton = new St.Button({
                     label: "Click here for help creating a new account and key", can_focus: true,  toggle_mode: true
@@ -297,8 +308,8 @@ class Penguin extends PanelMenu.Button
             if (res.error?.code != 401 && res.error?.code != 429 && res.error !== undefined){
                 let response = "Oh no! It seems like the LLM model you entered is either down or not correct. Make sure you didn't make any errors when inputting it in the settings. You can always use the default extension model (sent in the next message). Check your connection either way";
     
-                this.initializeTextBox('llmMessage', response);
-                this.initializeTextBox('llmMessage', "mattshumer/reflection-70b:free");
+                this.initializeTextBox('llmMessage', response, BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
+                this.initializeTextBox('llmMessage', "meta-llama/llama-3.1-8b-instruct:free", BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
     
                 let settingsButton = new St.Button({
                     label: "Click here to check or change your model ID", can_focus: true,  toggle_mode: true
@@ -319,7 +330,7 @@ class Penguin extends PanelMenu.Button
                 let response = res.choices[0].message.content;
                     
                 let final = convertMD(response);
-                this.initializeTextBox('llmMessage', final);
+                this.initializeTextBox('llmMessage', final, BACKGROUND_COLOR_LLM_MESSAGE, COLOR_LLM_MESSAGE);
     
                 // Add input to chat history
                 this.history.push({
@@ -338,7 +349,7 @@ class Penguin extends PanelMenu.Button
         });
     }
 
-    initializeTextBox(type, text) {
+    initializeTextBox(type, text, color, textColor) {
         let box = new St.BoxLayout({
             vertical: true,
             style_class: `${type}-box`
@@ -347,6 +358,7 @@ class Penguin extends PanelMenu.Button
         // text has to be a string
         let label = new St.Label({
             style_class: type,
+            style: `background-color: ${color}; color: ${textColor}`,
             y_expand: true,
             reactive: true
         });

@@ -8,7 +8,7 @@
         <description>Add the Open Router Key in order to use this extension</description>
     </key>
     <key name="llm-model" type="s">
-        <default>"mattshumer/reflection-70b:free"</default>
+        <default>"meta-llama/llama-3.1-8b-instruct:free"</default>
         <summary>LLM model from Open Router</summary>
         <description>LLM model for prompting</description>
     </key>
@@ -16,6 +16,26 @@
         <default>"[]"</default>
         <summary>Chat History</summary>
         <description>Saving chat history as JSON.Stringify</description>
+    </key>
+    <key name="human-message-color" type="s">
+        <default>"rgb(0, 106, 255)"</default>
+        <summary>Background Color of Human Message</summary>
+        <description>Customizing</description>
+    </key>
+    <key name="llm-message-color" type="s">
+        <default>"rgb(96,99,102)"</default>
+        <summary>Background Color of LLM message</summary>
+        <description>Customizing</description>
+    </key>
+    <key name="llm-message-text-color" type="s">
+        <default>"rgb(255,255,255)"</default>
+        <summary>Text Color of LLM message</summary>
+        <description>Customizing</description>
+    </key>
+    <key name="human-message-text-color" type="s">
+        <default>"rgb(255,255,255)"</default>
+        <summary>Text Color of Human message</summary>
+        <description>Customizing</description>
     </key>
   </schema>
 </schemalist>

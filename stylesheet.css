@@ -30,7 +30,6 @@
 .humanMessage {
     text-wrap:wrap;
     text-align: left;
-    background-color: #006AFF;
     text-size-adjust: 12;
     font-weight: bolder;
     margin-top: 5px;
@@ -45,7 +44,6 @@
 
 .llmMessage {
     text-wrap:wrap;
-    background-color:rgb(96, 99, 102);
     text-align: left;
     text-size-adjust: 12;
     font-weight: bolder;
@@ -62,7 +60,6 @@
 
 .settings {
     text-wrap:wrap;
-    background-color:rgb(96, 99, 102);
     text-align: left;
     margin-right: 40px;
     text-size-adjust: 12;
